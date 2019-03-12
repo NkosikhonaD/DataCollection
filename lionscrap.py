@@ -2,6 +2,8 @@ from requests import get
 from requests.exceptions import RequestException
 from contextlib import closing
 from bs4 import BeautifulSoup
+import os
+import urllib
 
 
 def simple_get(url):
@@ -24,12 +26,18 @@ def save_lion_image(lion_list):
 
     for name in lion_list:
         print("-------------------------------", name, "---------------------------")
+        path = "C:\\Users\\DlaminiN3\\Desktop\\Lion_Data\\"
+        try:
+            os.makedirs(path+os.sep+name)
+        except FileExistsError:
+            print("Could not create folder, it exits")
+
         url = "http://livingwithlions.org/mara/lions/"+name+"/"
         raw_html = simple_get(url)
         if raw_html is not None:
             html = BeautifulSoup(raw_html, 'html.parser')
             image_div = html.find_all("div", {"id":"tabs-1"})
-
+            image_name_list = []
             for item in image_div:
 
                 body_part_list = item.ul
@@ -40,11 +48,27 @@ def save_lion_image(lion_list):
                         body_part = body_part.rstrip()
                         body_part = body_part.lstrip()
                         body_part_image = part.a.img['src']
+                        image_name = name+"_"+body_part
+
+                        count = image_name_list.count(image_name)
+                        if count > 0:
+                            image_name = image_name+count
+
+                        image_name_list.append(image_name)
+                        image_name = image_name+".png"
+                        req = urllib.request.Request(body_part_image)
+                        response = urllib.request.urlopen(req)
+
+                        with open(path+os.sep+name+os.sep+image_name, 'wb') as img_file:
+                            img_file.write(response.read())
+                            print('Url saved as %s' % path+os.sep+name+os.sep+image_name)
                         print(body_part, body_part_image)
                     except:
                         continue
         else:
             print("URL IS None")
+def save_to_local(image_url):
+    print("Starting to save image\n")
 
 def get_lions_list(url):
     print('Getting Lion names \n')
@@ -70,15 +94,13 @@ def get_data_features(url):
 
         for each_lion in lion_div:
             lion_name = each_lion.h2.a.text
-            lion_name= lion_name.rstrip()
-            lion_name = lion_name.lstrip()
             data = ""
             data = data+lion_name
             feature_list = each_lion.ul
             for li in feature_list:
                 if li is not None:
                     try:
-                       data=data+","+(li.text[li.text.rfind(':')+1:].rstrip().lstrip())
+                       data = data+","+(li.text[li.text.rfind(':')+1:].rstrip().lstrip())
                     except:
                         continue
             print(data)
@@ -89,6 +111,5 @@ if __name__ =='__main__':
     url = 'http://livingwithlions.org/mara/browse/all/all/'
     lion_names = get_lions_list(url)
     save_lion_image(lion_names)
-    #get_data_features(url)
     print('Done \n')
 
