@@ -26,11 +26,15 @@ def save_lion_image(lion_list):
 
     for name in lion_list:
         print("-------------------------------", name, "---------------------------")
+        if name =="Teriano" or name == "Tigis":
+            continue
+
         path = "C:\\Users\\DlaminiN3\\Desktop\\Lion_Data\\"
         try:
             os.makedirs(path+os.sep+name)
         except FileExistsError:
             print("Could not create folder, it exits")
+            continue
 
         url = "http://livingwithlions.org/mara/lions/"+name+"/"
         raw_html = simple_get(url)
@@ -97,19 +101,24 @@ def get_data_features(url):
             data = ""
             data = data+lion_name
             feature_list = each_lion.ul
+
             for li in feature_list:
                 if li is not None:
                     try:
                        data = data+","+(li.text[li.text.rfind(':')+1:].rstrip().lstrip())
+
                     except:
                         continue
-            print(data)
+            with open("C:\\Users\\DlaminiN3\\Desktop\\Lion_Data\\" + "lion_features.csv", 'a+') as lion_f_file:
+                lion_f_file.write(data+"\n")
+                print(data)
 def log_error(e):
     print(e)
 
 if __name__ =='__main__':
     url = 'http://livingwithlions.org/mara/browse/all/all/'
-    lion_names = get_lions_list(url)
-    save_lion_image(lion_names)
+    #lion_names = get_lions_list(url)
+    #save_lion_image(lion_names)
+    get_data_features(url)
     print('Done \n')
 
